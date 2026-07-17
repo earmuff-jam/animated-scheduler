@@ -1,4 +1,4 @@
-Date,Time,Message,ImageURL,Status,FacebookPostId,IsCompleted,RetryCount
-2026-07-20,09:00,Taking the stress out of property management.,house1.jpg,Status,FacebookPostId,IsCompleted,RetryCount
-2026-07-20,10:00,Learning new stuffs about property management.,house2.jpg,Status,FacebookPostId,IsCompleted,RetryCount
-2026-07-20,11:00,Teaching new stuffs about property management.,house3.jpg,Status,FacebookPostId,IsCompleted,RetryCount
+Date,Message,ImageURL,Status,FacebookPostID,IsComplete,RetryCount
+2026-07-20T09:00:00Z,Taking the stress out of property management.,house1.jpg,Status,FacebookPostId,false,0
+2026-07-20T10:00:00Z,Learning new stuffs about property management.,house2.jpg,Status,FacebookPostId,false,0
+2026-07-20T11:00:00Z,Teaching new stuffs about property management.,house3.jpg,Status,FacebookPostId,false,0
