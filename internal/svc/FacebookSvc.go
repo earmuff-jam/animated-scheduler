@@ -27,7 +27,7 @@ func PerformFacebookSvcHealthCheck(fb types.FacebookSvcData) (bool, error) {
 
 // PerformUpdateToFacebookPage ...
 // updates the facebook page with the new content
-func PerformUpdateToFacebookPage(isValid bool, data types.CSVRowData) (bool, error) {
+func PerformUpdateToFacebookPage(fb types.FacebookSvcData, data types.CSVRowData) (bool, error) {
 
 	isComplete, err := performPost(fb, data)
 	if err != nil {

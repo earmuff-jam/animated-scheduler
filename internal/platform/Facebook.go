@@ -56,7 +56,8 @@ func (f *Facebook) ProcessCSVData(parsedCSV types.CSVRowData) error {
 		return err
 	}
 
-	isUpdateComplete, err := svc.PerformUpdateToFacebookPage(isValid, parsedCSV)
+	log.Printf("health check is successful. Status: %+v", isValid)
+	isUpdateComplete, err := svc.PerformUpdateToFacebookPage(svcFacebookClient, parsedCSV)
 	if err != nil {
 		log.Printf("unable to update facebook pages. error: %+v", err)
 		return err
