@@ -30,13 +30,13 @@ func NewFacebook(URI string, pageID string, token string) *Facebook {
 // formats the data into CSV ready struct
 func (f *Facebook) PreProcessCSVData(data []string) (types.CSVRowData, error) {
 
-	parsedCSV, err := parseCSV(data)
+	parsedCSV, err := parseCSVToFacebookStruct(data)
 	if err != nil {
 		log.Printf("unable to parse csv data. error: %+v", err)
-		return parsedCSV, nil
+		return types.CSVRowData{}, err
 	}
 
-	return types.CSVRowData{}, errors.New("unable to parse csv data")
+	return parsedCSV, nil
 
 }
 
@@ -56,7 +56,13 @@ func (f *Facebook) ProcessCSVData(parsedCSV types.CSVRowData) error {
 		return err
 	}
 
+	if !isValid {
+		log.Printf("health check failed for facebook. Ignoring updates.")
+		return errors.New("health check failed for facebook.")
+	}
+
 	log.Printf("health check is successful. Status: %+v", isValid)
+
 	isUpdateComplete, err := svc.PerformUpdateToFacebookPage(svcFacebookClient, parsedCSV)
 	if err != nil {
 		log.Printf("unable to update facebook pages. error: %+v", err)
@@ -74,9 +80,9 @@ func (f *Facebook) PostProcessCSVData() {
 	// do post processing later
 }
 
-// parseCSV ...
+// parseCSVToFacebookStruct ...
 // parse CSV for each row
-func parseCSV(data []string) (types.CSVRowData, error) {
+func parseCSVToFacebookStruct(data []string) (types.CSVRowData, error) {
 
 	formattedCSVRowData := types.CSVRowData{}
 
@@ -86,26 +92,25 @@ func parseCSV(data []string) (types.CSVRowData, error) {
 		return formattedCSVRowData, err
 	}
 
-	isComplete, err := strconv.ParseBool(data[5])
+	isComplete, err := strconv.ParseBool(data[4])
 	if err != nil {
 		log.Printf("unable to parse isComplete for row. error: %+v", err)
 		return formattedCSVRowData, err
 	}
 
-	retryCount, err := strconv.Atoi(data[6])
+	retryCount, err := strconv.Atoi(data[5])
 	if err != nil {
 		log.Printf("unable to parse retryCount for row. error: %+v", err)
 		return formattedCSVRowData, err
 	}
 
 	return types.CSVRowData{
-		Date:           &date,
-		Message:        data[1],
-		ImageURL:       data[2],
-		Status:         data[3],
-		FacebookPostID: data[4],
-		IsComplete:     isComplete,
-		RetryCount:     retryCount,
+		Date:       &date,
+		Message:    data[1],
+		ImageURL:   data[2],
+		Status:     data[3],
+		IsComplete: isComplete,
+		RetryCount: retryCount,
 	}, nil
 
 }
