@@ -29,7 +29,15 @@ func PerformInstagramHealthCheck(in types.InstagramSvcData) (string, error) {
 // defines a function used to post content for instagram
 func PerformPostToInstagram(in types.InstagramSvcData, businessID string, data types.CSVRowData) (bool, error) {
 
-	// create media container
+	// fetch random image
+	publicImageURL, err := fetchRandomImage()
+	if err != nil {
+		log.Printf("unable to fetch random image url. error: %+v", err)
+		return false, err
+	}
+
+	data.ImageURL = publicImageURL
+
 	instagramMediaContainer, err := createInstagramMediaContainer(businessID, in, data)
 	if err != nil {
 		log.Printf("unable to create instagram media container. error: %+v", err)
@@ -37,17 +45,92 @@ func PerformPostToInstagram(in types.InstagramSvcData, businessID string, data t
 	}
 
 	// post accepted media container
-	postInstagramFromMediaContainer(instagramMediaContainer.ID)
+	postInstagramFromMediaContainer(instagramMediaContainer.ID, in, businessID)
 
 	return false, errors.New("unable to perform post for instagram.")
 
 }
 
+// fetchRandomImage ...
+// defines a function that retrieves a random image
+func fetchRandomImage() (string, error) {
+
+	resp, err := http.Get("https://picsum.photos/1200/1200")
+	if err != nil {
+		log.Printf("unable to fetch public image url. error: %+v", err)
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	finalImageURL := resp.Request.URL.String()
+	return finalImageURL, nil
+}
+
 // postInstagramFromMediaContainer ...
 // defines a function that posts to instagram from media container
-func postInstagramFromMediaContainer(containerID string) (bool, error) {
+func postInstagramFromMediaContainer(containerID string, in types.InstagramSvcData, businessID string) (bool, error) {
 
-	return false, nil
+	if containerID == "" {
+		log.Printf("unable to post without a container id")
+		return false, errors.New("unable to post without a media container id")
+	}
+
+	publishURL := fmt.Sprintf(
+		"%s/%s/media_publish?access_token=%s",
+		in.URI,
+		businessID,
+		in.PageToken,
+	)
+
+	publishPayload := map[string]string{
+		"creation_id": containerID,
+	}
+
+	publishBody, err := json.Marshal(publishPayload)
+	if err != nil {
+		log.Printf("unable to marshall publish payload. error: %+v", err)
+		return false, err
+	}
+
+	publishReq, err := http.NewRequest(
+		http.MethodPost,
+		publishURL,
+		bytes.NewBuffer(publishBody),
+	)
+
+	if err != nil {
+		log.Printf("unable to create publish request. error: %+v", err)
+		return false, err
+	}
+
+	publishReq.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	publishResp, err := client.Do(publishReq)
+	if err != nil {
+		log.Printf("unable to publish to instagram media. error: %+v", err)
+		return false, err
+	}
+	defer publishResp.Body.Close()
+
+	publishResponseBody, err := io.ReadAll(publishResp.Body)
+	if err != nil {
+		log.Printf("unable to read publish response. error: %+v", err)
+		return false, err
+	}
+
+	if publishResp.StatusCode == http.StatusBadRequest {
+		log.Println("unable to publish data in media container for instagram")
+
+		errorMsg := fmt.Sprintf(
+			"instagram media creation failed. status: %d response: %s",
+			publishResp.StatusCode,
+			string(publishResponseBody))
+
+		return false, errors.New(errorMsg)
+	}
+
+	return true, nil
 }
 
 // createInstagramMediaContainer ...
@@ -111,7 +194,7 @@ func createInstagramMediaContainer(businessID string, in types.InstagramSvcData,
 	}
 
 	var result types.InstagramSvcMediaContainerResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	if err := json.Unmarshal(responseBody, &result); err != nil {
 		log.Printf("unable to decode response. error: %+v", err)
 		return types.InstagramSvcMediaContainerResponse{}, err
 	}
@@ -125,7 +208,7 @@ func createInstagramMediaContainer(businessID string, in types.InstagramSvcData,
 func performInstagramHealthCheck(in types.InstagramSvcData) (string, error) {
 
 	url := fmt.Sprintf(
-		"%s/%s/fields=instagram_business_account&access_token=%s",
+		"%s/%s?fields=instagram_business_account&access_token=%s",
 		in.URI,
 		in.PageID,
 		in.PageToken,
@@ -151,5 +234,5 @@ func performInstagramHealthCheck(in types.InstagramSvcData) (string, error) {
 	}
 
 	log.Printf("Health check completed. Response: %+v", result)
-	return result.InstagramBusinessAccountID, nil
+	return result.BusinessAccount.BusinessID, nil
 }

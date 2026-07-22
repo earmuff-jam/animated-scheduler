@@ -64,7 +64,7 @@ func (in *Instagram) ProcessCSVData(parsedCSV types.CSVRowData) error {
 
 	log.Println("instagram health check is successful.")
 
-	isUpdateComplete, err := svc.PerformPostToInstagram(svcInstagramClient, parsedCSV)
+	isUpdateComplete, err := svc.PerformPostToInstagram(svcInstagramClient, businessID, parsedCSV)
 	if err != nil {
 		log.Printf("unable to update instagram pages. error: %+v", err)
 		return err
@@ -73,6 +73,12 @@ func (in *Instagram) ProcessCSVData(parsedCSV types.CSVRowData) error {
 	log.Printf("Updated selected row. Details: %+v", isUpdateComplete)
 	return errors.New("unable to publish into instagram")
 
+}
+
+// PostProcessCSVData ...
+// defines a function that is used to post process csv data
+func (f *Instagram) PostProcessCSVData() {
+	// do post processing later
 }
 
 // parseCSVToInstagramStruct ...

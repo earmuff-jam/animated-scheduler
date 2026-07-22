@@ -1,0 +1,20 @@
+name: Animated Scheduler
+
+# limit the permission to only read the github repo
+permissions:
+  contents: read
+
+on:
+  schedule:
+    - cron: "0 9 * * *" # every day at 9 AM UTC
+
+jobs:
+  trigger-test-arps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Scheduler
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"adminKey\":\"${{ secrets.ADMIN_KEY }}\",\"integrationKey\":\"${{ secrets.INTEGRATION_KEY }}\"}" \
+            "${{ secrets.TEST_SITE_URL }}/.netlify/functions/0010_send_automatic_reminders"

@@ -30,10 +30,16 @@ type InstagramSvcMediaContainerResponse struct {
 	ID string `json:"id"`
 }
 
+type InstagramBusinessAccountIDResponse struct {
+	BusinessID string `json:"id"`
+}
+
 // InstagramSvcHealthResponse ...
 // defines a health repsonse struct for Instagram
 type InstagramSvcHealthResponse struct {
-	InstagramBusinessAccountID string `json:"id"`
+	PageID          string                             `json:"id"`
+	PageName        string                             `json:"name"`
+	BusinessAccount InstagramBusinessAccountIDResponse `json:"instagram_business_account"`
 }
 
 // FacebookSvcData ...
