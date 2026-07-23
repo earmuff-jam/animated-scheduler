@@ -1,0 +1,24 @@
+{
+  "name": "scheduler",
+  "version": "1.0.0",
+  "description": "CLI application that allows users to use facebook to schedule posts.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/earmuff-jam/animated-scheduler.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/earmuff-jam/animated-scheduler/issues"
+  },
+  "homepage": "https://github.com/earmuff-jam/animated-scheduler#readme",
+  "devDependencies": {
+    "netlify-cli": "^26.2.0"
+  }
+}
