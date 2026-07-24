@@ -6,7 +6,7 @@ permissions:
 
 on:
   schedule:
-    - cron: "0 0 */20 * *" # midnight UTC every 20 days
+    - cron: "0 0 25 * *" # midnight UTC every 25th day of the month
 
 jobs:
   trigger-test-arps:
