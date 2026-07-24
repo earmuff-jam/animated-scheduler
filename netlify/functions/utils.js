@@ -1,5 +1,6 @@
 // isDevEnv ...
 const isDevEnv = process.env.DEV_ENV === "true";
+const IntegrationApiKey = process.env.INTEGRATION_KEY;
 
 // FacebookEnvValues ...
 // defines common facebook env values
