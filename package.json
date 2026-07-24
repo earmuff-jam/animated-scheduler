@@ -1,0 +1,42 @@
+{
+  "name": "homehive-scheduler",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Automated post scheduler",
+  "scripts": {
+    "lint": "eslint .",
+    "prettierw": "prettier --write .",
+    "prettierc": "prettier --check .",
+    "debug": "netlify dev --inspect",
+    "analyzer": "npx vite-bundle-visualizer"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "5.2.2",
+    "eslint": "^9.30.1",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "globals": "^15.11.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "netlify-cli": "^26.2.0",
+    "prettier": "^3.6.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/earmuff-jam/animated-scheduler.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/earmuff-jam/animated-scheduler/issues"
+  },
+  "homepage": "https://github.com/earmuff-jam/animated-scheduler#readme",
+  "dependencies": {
+    "csv-parser": "^3.2.1",
+    "csv-writer": "^1.6.0"
+  }
+}
