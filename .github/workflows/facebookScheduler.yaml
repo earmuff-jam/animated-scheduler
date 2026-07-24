@@ -9,7 +9,7 @@ on:
     - cron: "0 0 25 * *" # midnight UTC every 25th day of the month
 
 jobs:
-  trigger-test-arps:
+  trigger-facebookScheduler:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Facebook Scheduler

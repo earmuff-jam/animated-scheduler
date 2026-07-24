@@ -10,7 +10,7 @@ on:
     - cron: "0 2 * * *" # every day at 2 PM UTC
 
 jobs:
-  trigger-test-arps:
+  trigger-instagramScheduler:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Instagram Scheduler
