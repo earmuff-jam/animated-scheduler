@@ -1,0 +1,20 @@
+name: Facebook Scheduler
+
+# limit the permission to only read the github repo
+permissions:
+  contents: read
+
+on:
+  schedule:
+    - cron: "0 0 */20 * *" # midnight UTC every 20 days
+
+jobs:
+  trigger-test-arps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Facebook Scheduler
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"integrationKey\":\"${{ secrets.INTEGRATION_KEY }}\"}" \
+            "${{ secrets.TEST_SITE_URL }}/.netlify/functions/facebookScheduler"
