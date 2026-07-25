@@ -1,20 +1,10 @@
-/**
- * facebookScheduler ...
- * defines a function used to create facebook scheduled posts
- *
- * Posts all data in CSV for upto 30 days period into facebook using facebook
- * scheduling services.
- */
-
-import fs from "node:fs";
-import path from "node:path";
-import csv from "csv-parser";
-
 import {
   ApiConstant,
   Constant,
-  FacebookEnvValues,
+  fetchRandomImage,
   populateCorsHeaders,
+  populateDataFromGoogleSheets,
+  updateGoogleSheetWithStatus,
   validateRequest,
 } from "./utils";
 
@@ -50,7 +40,7 @@ export const handler = async (event) => {
   }
 
   try {
-    const results = await parseContentsOfCsv();
+    const results = await populateDataFromGoogleSheets();
     if (results.length <= 0) {
       console.debug(Constant.EmptyDataset);
       return {
@@ -64,10 +54,25 @@ export const handler = async (event) => {
     }
 
     const facebook = {
-      URI: process.env[FacebookEnvValues.FacebookPageUri],
-      PageID: process.env[FacebookEnvValues.FacebookPageId],
-      PageToken: process.env[FacebookEnvValues.FacebookPageAccessToken],
+      URI: process.env.FACEBOOK_URI,
+      PageID: process.env.FACEBOOK_PAGE_ID,
+      PageToken: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
     };
+
+    // isFacebookPosted === v[3]
+    const dataToPost = results?.find((v) => v[3] === "FALSE");
+
+    if (!dataToPost) {
+      console.debug(Constant.FailedToPost);
+      return {
+        statusCode: 500,
+        headers: populateCorsHeaders(),
+        body: JSON.stringify({
+          error: ApiConstant.HttpStatusSystemFailed,
+          errorDetails: Constant.FailedToPost,
+        }),
+      };
+    }
 
     const isValid = await performHealthCheck(facebook);
     if (!isValid) {
@@ -82,23 +87,28 @@ export const handler = async (event) => {
       };
     }
 
-    // post all content into facebook scheduler
-    await results.forEach((element) => {
-      const imagePath = fetchRandomImage();
+    const imagePath = await fetchRandomImage();
 
-      const isComplete = performPostToFacebook(facebook, element, imagePath);
-      if (!isComplete) {
-        console.debug(Constant.FailedToPost);
-        return {
-          statusCode: 500,
-          headers: populateCorsHeaders(),
-          body: JSON.stringify({
-            error: ApiConstant.HttpStatusSystemFailed,
-            errorDetails: Constant.FailedToPost,
-          }),
-        };
-      }
-    });
+    const isComplete = await performPostToFacebook(
+      facebook,
+      dataToPost[2],
+      imagePath,
+    );
+
+    if (!isComplete) {
+      console.debug(Constant.FailedToPost);
+      return {
+        statusCode: 500,
+        headers: populateCorsHeaders(),
+        body: JSON.stringify({
+          error: ApiConstant.HttpStatusSystemFailed,
+          errorDetails: Constant.FailedToPost,
+        }),
+      };
+    }
+
+    // update google sheets after the data is posted
+    await updateGoogleSheetWithStatus();
 
     return {
       statusCode: 200,
@@ -118,27 +128,9 @@ export const handler = async (event) => {
   }
 };
 
-// fetchRandomImage ...
-// defines a function that is used to fetch a random image
-const fetchRandomImage = () => {
-  const imagesDir = path.join("content", "images");
-
-  const entries = fs.readdirSync(imagesDir);
-
-  if (entries.length === 0) {
-    console.debug("image directory is empty");
-    return "placeholder.png";
-  }
-
-  const randomIndex = Math.floor(Math.random() * entries.length);
-  const imagePath = path.join(imagesDir, entries[randomIndex]);
-
-  return imagePath;
-};
-
 // performPost ...
 // defines a function that is used to post into facebook
-const performPostToFacebook = async (fb, data, imagePath) => {
+const performPostToFacebook = async (fb, message, imagePath) => {
   const requestUrl = `${fb.URI}/${fb.PageID}/photos?origin_graph_explorer=1&transport=cors&access_token=${fb.PageToken}`;
 
   const form = new FormData();
@@ -146,13 +138,7 @@ const performPostToFacebook = async (fb, data, imagePath) => {
   const image = await fs.openAsBlob(imagePath);
 
   form.append("source", image, path.basename(imagePath));
-  form.append("message", data.message);
-
-  form.append("published", "false");
-  form.append(
-    "scheduled_publish_time",
-    Math.floor(new Date(data.date).getTime() / 1000).toString(),
-  );
+  form.append("message", message);
 
   const response = await fetch(requestUrl, {
     method: "POST",
@@ -181,20 +167,4 @@ const performHealthCheck = async (fb) => {
 
   await response.json();
   return true;
-};
-
-// parseContentsOfCsv ...
-// defines a function that is used to parse the contents of the csv
-const parseContentsOfCsv = () => {
-  const filenameWithPath = process.env[FacebookEnvValues.FileName];
-
-  return new Promise((resolve, reject) => {
-    const results = [];
-
-    fs.createReadStream(filenameWithPath)
-      .pipe(csv())
-      .on("data", (row) => results.push(row))
-      .on("end", () => resolve(results))
-      .on("error", reject);
-  });
 };
