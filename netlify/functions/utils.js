@@ -29,6 +29,13 @@ const initializeServiceAccount = (isDevEnv = false) => {
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
   } else {
+    console.log(
+      console.log({
+        project: process.env.GOOGLE_PROJECT_ID,
+        email: process.env.GOOGLE_CLIENT_EMAIL,
+        hasKey: !!process.env.GOOGLE_PRIVATE_KEY,
+      }),
+    );
     return new google.auth.GoogleAuth({
       credentials: {
         type: "service_account",
