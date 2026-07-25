@@ -9,7 +9,7 @@ import {
 } from "./utils";
 
 export const handler = async (event) => {
-   // ARPS validation occurs differently
+  // ARPS validation occurs differently
   const { integrationKey } = JSON.parse(event?.body || "{}");
   if (!integrationKey || integrationKey === "") {
     console.debug(ApiConstant.HttpUnauthorized);
@@ -59,10 +59,20 @@ export const handler = async (event) => {
       PageToken: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
     };
 
-    // retrieves the first dataset that is not posted to instagram
-    const dataToPost = results.find(
-      (element) => element.IsInstagramPosted !== "true",
-    );
+    // isInstagramPosted === v[4]
+    const dataToPost = results?.find((v) => v[4] === "FALSE");
+
+    if (!dataToPost) {
+      console.debug(Constant.FailedToPost);
+      return {
+        statusCode: 500,
+        headers: populateCorsHeaders(),
+        body: JSON.stringify({
+          error: ApiConstant.HttpStatusSystemFailed,
+          errorDetails: Constant.FailedToPost,
+        }),
+      };
+    }
 
     const businessID = await performHealthCheck(instagram);
     if (businessID === "") {
@@ -82,7 +92,7 @@ export const handler = async (event) => {
     const instagramMediaContainer = await createInstagramMediaContainer(
       businessID,
       instagram,
-      dataToPost?.Message,
+      dataToPost[2],
       imagePath,
     );
 
@@ -117,8 +127,7 @@ export const handler = async (event) => {
     }
 
     // if data was posted, update csv to mark posted as true
-    // await updateCsvInstagramStatus(results, dataToPost);
-    await updateGoogleSheetWithStatus();
+    await updateGoogleSheetWithStatus(dataToPost[0], "E");
 
     return {
       statusCode: 200,

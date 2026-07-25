@@ -74,6 +74,10 @@ export const handler = async (event) => {
       };
     }
 
+    // if no dataToPost exist; error out before crashing fn
+    const toPostRowIdx = results?.findIndex((v) => v[3] === "FALSE");
+    const sheetRow = toPostRowIdx + 1;
+
     const isValid = await performHealthCheck(facebook);
     if (!isValid) {
       console.debug(Constant.FailedHealthCheck);
@@ -108,7 +112,7 @@ export const handler = async (event) => {
     }
 
     // update google sheets after the data is posted
-    await updateGoogleSheetWithStatus();
+    await updateGoogleSheetWithStatus(sheetRow, "D");
 
     return {
       statusCode: 200,

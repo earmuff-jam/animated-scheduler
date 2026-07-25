@@ -29,11 +29,6 @@ const initializeServiceAccount = (isDevEnv = false) => {
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
   } else {
-    console.log({
-      project: process.env.GOOGLE_PROJECT_ID,
-      email: process.env.GOOGLE_CLIENT_EMAIL,
-      hasKey: !!process.env.GOOGLE_PRIVATE_KEY,
-    });
     return new google.auth.GoogleAuth({
       credentials: {
         type: "service_account",
@@ -75,7 +70,23 @@ export const populateDataFromGoogleSheets = async () => {
 
 // updateGoogleSheetWithStatus ...
 // defines a function that is used to update google sheets
-export const updateGoogleSheetWithStatus = async () => {};
+export const updateGoogleSheetWithStatus = async (sheetRowID, column) => {
+  const sheets = google.sheets({
+    version: "v4",
+    auth: initializeServiceAccount(IsDevEnv),
+  });
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: process.env.GOOGLE_SHEET_FILENAME,
+    range: `Sheet1!${column}${sheetRowID}`,
+    valueInputOption: "USER_ENTERED",
+    requestBody: {
+      values: [[true]],
+    },
+  });
+
+  return true;
+};
 
 // fetchRandomImage ...
 // defines a function that is uXsed to fetch a random image
