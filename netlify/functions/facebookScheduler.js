@@ -135,9 +135,7 @@ const performPostToFacebook = async (fb, message, imagePath) => {
 
   const form = new FormData();
 
-  const image = await fs.openAsBlob(imagePath);
-
-  form.append("source", image, path.basename(imagePath));
+  form.append("url", imagePath);
   form.append("message", message);
 
   const response = await fetch(requestUrl, {
