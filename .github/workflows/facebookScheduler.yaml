@@ -6,7 +6,8 @@ permissions:
 
 on:
   schedule:
-    - cron: "15 3 25 * *" # midnight-ish UTC every 25th day of the month
+    - cron: "0 9 * * *" # every day at 9 AM UTC
+    - cron: "0 2 * * *" # every day at 2 PM UTC
 
 jobs:
   trigger-facebookScheduler:

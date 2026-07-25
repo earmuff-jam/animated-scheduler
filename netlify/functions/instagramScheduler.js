@@ -1,24 +1,12 @@
-/**
- * instagramScheduler ...
- * defines a function used to create instagram posts
- *
- * parses single data from csv every day until the marker is turned
- * off using instagram services. Does not have scheduling services
- * to use.
- */
-
-import fs from "node:fs";
-import path from "node:path";
-import csv from "csv-parser";
-
 import {
   ApiConstant,
   Constant,
-  FacebookEnvValues,
+  fetchRandomImage,
   populateCorsHeaders,
+  populateDataFromGoogleSheets,
+  updateGoogleSheetWithStatus,
   validateRequest,
 } from "./utils";
-import { createObjectCsvWriter } from "csv-writer";
 
 export const handler = async (event) => {
    // ARPS validation occurs differently
@@ -52,7 +40,7 @@ export const handler = async (event) => {
   }
 
   try {
-    const results = await parseContentsOfCsv();
+    const results = await populateDataFromGoogleSheets();
     if (results.length <= 0) {
       console.debug(Constant.EmptyDataset);
       return {
@@ -66,14 +54,14 @@ export const handler = async (event) => {
     }
 
     const instagram = {
-      URI: process.env[FacebookEnvValues.FacebookPageUri],
-      PageID: process.env[FacebookEnvValues.FacebookPageId],
-      PageToken: process.env[FacebookEnvValues.FacebookPageAccessToken],
+      URI: process.env.FACEBOOK_URI,
+      PageID: process.env.FACEBOOK_PAGE_ID,
+      PageToken: process.env.FACEBOOK_PAGE_ACCESS_TOKEN,
     };
 
     // retrieves the first dataset that is not posted to instagram
     const dataToPost = results.find(
-      (element) => element.IsInstagramComplete !== "true",
+      (element) => element.IsInstagramPosted !== "true",
     );
 
     const businessID = await performHealthCheck(instagram);
@@ -129,7 +117,8 @@ export const handler = async (event) => {
     }
 
     // if data was posted, update csv to mark posted as true
-    await updateCsvInstagramStatus(results, dataToPost);
+    // await updateCsvInstagramStatus(results, dataToPost);
+    await updateGoogleSheetWithStatus();
 
     return {
       statusCode: 200,
@@ -240,50 +229,4 @@ const performHealthCheck = async (instagram) => {
   console.debug("Health check completed. Response:", result);
 
   return result?.instagram_business_account?.id || "";
-};
-
-// parseContentsOfCsv ...
-// defines a function that is used to parse the contents of the csv
-const parseContentsOfCsv = () => {
-  const filenameWithPath = process.env[FacebookEnvValues.FileName];
-
-  return new Promise((resolve, reject) => {
-    const results = [];
-
-    fs.createReadStream(filenameWithPath)
-      .pipe(csv())
-      .on("data", (row) => results.push(row))
-      .on("end", () => resolve(results))
-      .on("error", reject);
-  });
-};
-
-// fetchRandomImage ...
-// defines a function that is uXsed to fetch a random image
-const fetchRandomImage = async () => {
-  const response = await fetch("https://picsum.photos/1200/1200");
-
-  if (!response.ok) {
-    throw new Error("unable to fetch public image url");
-  }
-
-  return response.url;
-};
-
-// updateCsvInstagramStatus ...
-// defines a function that updates the instagram status for the CSV row
-const updateCsvInstagramStatus = async (rows, rowToUpdate) => {
-  const filenameWithPath = process.env[FacebookEnvValues.FileName];
-
-  rowToUpdate.IsInstagramComplete = "true";
-
-  const csvWriter = createObjectCsvWriter({
-    path: filenameWithPath,
-    header: Object.keys(rows[0]).map((key) => ({
-      id: key,
-      title: key,
-    })),
-  });
-
-  await csvWriter.writeRecords(rows);
 };

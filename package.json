@@ -36,7 +36,6 @@
   },
   "homepage": "https://github.com/earmuff-jam/animated-scheduler#readme",
   "dependencies": {
-    "csv-parser": "^3.2.1",
-    "csv-writer": "^1.6.0"
+    "googleapis": "^173.0.0"
   }
 }
