@@ -19,7 +19,18 @@ import {
 } from "./utils";
 
 export const handler = async (event) => {
-  const isValidRequest = validateRequest(event.headers["x-api-key"]);
+  // ARPS validation occurs differently
+  const { integrationKey } = JSON.parse(event?.body || "{}");
+  if (!integrationKey || integrationKey === "") {
+    console.debug(ApiConstant.HttpUnauthorized);
+    return {
+      statusCode: 401,
+      headers: populateCorsHeaders(),
+      body: JSON.stringify({ error: ApiConstant.HttpUnauthorized }),
+    };
+  }
+
+  const isValidRequest = validateRequest(integrationKey);
   if (!isValidRequest) {
     console.debug(ApiConstant.HttpUnauthorized);
     return {

@@ -6,8 +6,8 @@ permissions:
 
 on:
   schedule:
-    - cron: "0 9 * * *" # every day at 9 AM UTC
-    - cron: "0 2 * * *" # every day at 2 PM UTC
+    - cron: "0 12 * * *" # every day at 12:00 AM UTC
+    - cron: "20 3 * * *" # every day at 03:20 AM UTC
 
 jobs:
   trigger-instagramScheduler:
