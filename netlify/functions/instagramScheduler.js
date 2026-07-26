@@ -74,6 +74,10 @@ export const handler = async (event) => {
       };
     }
 
+    // if no dataToPost exist; error out before crashing fn
+    const toPostRowIdx = results?.findIndex((v) => v[4] === "FALSE");
+    const sheetRow = toPostRowIdx + 1;
+
     const businessID = await performHealthCheck(instagram);
     if (businessID === "") {
       console.debug(Constant.FailedHealthCheck);
@@ -127,7 +131,7 @@ export const handler = async (event) => {
     }
 
     // if data was posted, update csv to mark posted as true
-    await updateGoogleSheetWithStatus(dataToPost[0], "E");
+    await updateGoogleSheetWithStatus(sheetRow, "E");
 
     return {
       statusCode: 200,
