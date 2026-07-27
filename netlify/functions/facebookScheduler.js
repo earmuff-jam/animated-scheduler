@@ -148,7 +148,9 @@ const performPostToFacebook = async (fb, message, imagePath) => {
   });
 
   if (!response.ok) {
-    throw new Error(await response.text());
+    const errorMsg = await response.text();
+    console.debug(`Unable to post data to facebook. Error: ${errorMsg}`);
+    return false;
   }
 
   return true;
@@ -162,8 +164,8 @@ const performHealthCheck = async (fb) => {
   const response = await fetch(url);
 
   if (response.status === 400) {
-    const body = await response.text();
-    console.debug(`unable to perform health check. Details: ${body}`);
+    const errorMsg = await response.text();
+    console.debug(`unable to perform health check. Error: ${errorMsg}`);
     return false;
   }
 

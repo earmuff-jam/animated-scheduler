@@ -233,8 +233,8 @@ const performHealthCheck = async (instagram) => {
   const response = await fetch(url);
 
   if (!response.ok) {
-    const body = await response.text();
-    console.debug(`unable to perform health check. Details: ${body}`);
+    const errorMsg = await response.text();
+    console.debug(`unable to perform health check. Details: ${errorMsg}`);
     return "";
   }
 
